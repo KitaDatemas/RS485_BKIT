@@ -1,3 +1,0 @@
-../Core/Src/modbus.c:5:6:Modbus_Init	1
-../Core/Src/modbus.c:9:20:Modbus_Transmit	2
-../Core/Src/modbus.c:30:20:Modbus_Receive	2
