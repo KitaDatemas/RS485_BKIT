@@ -1,0 +1,8 @@
+modbus.c:25:6:Modbus_Init	32	static
+modbus.c:50:20:Modbus_Transmit	40	static
+modbus.c:71:20:Modbus_Receive	24	static
+modbus.c:93:20:Modbus_Receive_Callback	32	static
+modbus.c:127:6:Modbus_Process	64	static
+modbus.c:212:6:readRegister	40	static
+modbus.c:224:6:writeRegister	16	static
+modbus.c:229:9:validateAddress	16	static

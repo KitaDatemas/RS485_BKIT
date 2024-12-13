@@ -1,0 +1,5 @@
+button.c:32:6:button_init	16	static
+button.c:43:6:button_scan	32	static
+button.c:105:9:isPress	16	static
+button.c:116:9:isLongPress	16	static
+button.c:127:6:resetButton	16	static
