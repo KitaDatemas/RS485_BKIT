@@ -14,7 +14,7 @@
 
 
 
-#define RESPONSE_TIMEOUT 1000  // Thời gian timeout (ms)
+#define RESPONSE_TIMEOUT 3000  // Thời gian timeout (ms)
 #define MAX_RETRIES 3         // Số lần thử lại tối đa
 
 
@@ -35,7 +35,7 @@ extern uint8_t * buffer_flag;
 extern uint16_t no_regs;
 extern uint16_t * Register;
 
-void Modbus_Init (enum Modbus_Role role, uint8_t address, uint32_t no_modbus_ports, uint32_t no_modbus_regs);
+void Modbus_Init (enum Modbus_Role role, UART_HandleTypeDef * Modbus_Uart, uint8_t address, uint32_t no_modbus_ports, uint32_t no_modbus_regs);
 enum Modbus_Status Modbus_Transmit (UART_HandleTypeDef * Modbus_Uart, uint8_t address, uint8_t opcode, uint8_t *data, uint32_t size);
 enum Modbus_Status Modbus_Receive (UART_HandleTypeDef * Modbus_Uart, uint8_t * buff, uint32_t size);
 enum Modbus_Status Modbus_Receive_Callback (UART_HandleTypeDef * Modbus_Uart);

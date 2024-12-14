@@ -101,7 +101,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  Modbus_Init(MODBUS_SLAVE, 0x11, 3, 10);
+  Modbus_Init(MODBUS_MASTER,&huart3, 0x03, 3, 10);
   Modbus_Receive(&huart1, sendData, sizeof(sendData)/sizeof(sendData[0]));
   /* USER CODE END 2 */
 
@@ -346,6 +346,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4,1);
 	Modbus_Receive_Callback(huart);
 }
 /* USER CODE END 4 */

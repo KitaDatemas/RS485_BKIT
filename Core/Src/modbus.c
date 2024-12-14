@@ -22,7 +22,7 @@ uint16_t * Register;
 
 
 
-void Modbus_Init (enum Modbus_Role role, uint8_t address, uint32_t no_modbus_ports, uint32_t no_modbus_regs) {
+void Modbus_Init (enum Modbus_Role role,UART_HandleTypeDef * Modbus_Uart, uint8_t address, uint32_t no_modbus_ports, uint32_t no_modbus_regs) {
 	ModbusRole = role;
 	Modbus_Address = address;
 
@@ -38,6 +38,7 @@ void Modbus_Init (enum Modbus_Role role, uint8_t address, uint32_t no_modbus_por
 		buffer_flag[idx] = 0;
 		Port[idx] = NULL;
 	}
+	Port[3] = Modbus_Uart;
 
 	for (int idx = 0; idx < no_modbus_regs; idx++) {
 		Register[idx] = idx + 1;
@@ -59,8 +60,8 @@ enum Modbus_Status Modbus_Transmit (UART_HandleTypeDef * Modbus_Uart, uint8_t ad
 
 	//CRC Generate
 	uint16_t crcVal = crc16(sendData, size + 2);
-	sendData[size + 2] = crcVal & 0xFF;//Low CRC bits
-	sendData[size + 3] = (crcVal >> 8) & 0xFF;//High CRC bits
+	sendData[size + 3] = crcVal & 0xFF;//Low CRC bits
+	sendData[size + 2] = (crcVal >> 8) & 0xFF;//High CRC bits
 
 	HAL_UART_Transmit(Modbus_Uart, sendData, size + 4, 1000);
 
@@ -126,56 +127,67 @@ enum Modbus_Status Modbus_Receive_Callback (UART_HandleTypeDef * Modbus_Uart) {
 
 void Modbus_Process() {
 	 if (ModbusRole == MODBUS_MASTER) {
-	        for (int idx = 0; idx < no_ports; idx++) {
-	            if (isLongPress(0)) {
+//	        for (int idx = 0; idx < no_ports; idx++) {
+	            if (buffer_flag[0]) {
 	                int retries = 0; // Bộ đếm số lần gửi lại
 	                bool response_received = false;
-
+//	                HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_4);
 	                do {
-	                    // 	Gửi yêu cầu tới Slave
-	                    Modbus_Transmit(Port[idx], Modbus_Address, buffer[idx][1], buffer[idx] + 2, buffer_len[idx] - 2);
 
-	                    // Bắt đầu chờ phản hồi
-	                    uint32_t start_time = millis();
-	                    while ((millis() - start_time) < RESPONSE_TIMEOUT) {
-	                        if (buffer_flag[idx]) {
-	                            uint16_t crc = crc16(buffer[idx], buffer_len[idx] - 2);
+	                    // Gửi yêu cầu tới Slave
+	                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, 1);
+	                    Modbus_Transmit(Port[3], buffer[0][0], buffer[0][1], &buffer[0][2], buffer_len[0] - 4);
+	                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, 0);
+	                    uint16_t no = ((buffer[0][4] << 8) | buffer[0][5]);
+	                    uint8_t* buffer_temp = malloc(sizeof (uint8_t)*(no + 5));
+	                    Modbus_Receive(Port[3], buffer_temp, no+5);
+	                    //Bắt đầu chờ phản hồi
+	                    uint32_t start_time = HAL_GetTick();
+	                    while ((HAL_GetTick() - start_time) < RESPONSE_TIMEOUT) {// sua lai timeout
+	                        if (buffer_flag[3]) {
+	                        	buffer_flag[3]=0;
+	                            uint16_t crc = crc16(buffer[3], buffer_len[3] - 2);
 	                            // Kiểm tra CRC
-	                            if ((buffer[idx][buffer_len[idx] - 1] == (crc & 0xFF)) &&
-	                                (buffer[idx][buffer_len[idx] - 2] == (crc >> 8))) {
+	                            if ((buffer[3][buffer_len[3] - 1] == (crc & 0xFF)) &&
+	                                (buffer[3][buffer_len[3] - 2] == (crc >> 8))) {
+
 	                                response_received = true; // Phản hồi hợp lệ
+
 	                                break;
 	                            }
 	                        }
 	                    }
+
 	                    if (!response_received) {
 	                        retries++;
 	                        if( retries > MAX_RETRIES)
 	              	         {
 	              	           HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_15);
+
 	              	         }
+
 	                    }
+	                    free (buffer_temp);
 	                }
 	                while (response_received && retries < MAX_RETRIES);
 
 	                if (response_received && retries < MAX_RETRIES) {
 
 	                    // Xử lý phản hồi nhận được
-	                    uint8_t function_code = buffer[idx][1];
+	                    uint8_t function_code = buffer[3][1];
 	                    if (function_code == READ_REGISTER) {
-	                        uint8_t byte_count = buffer[idx][2];
+	                        uint8_t byte_count = buffer[3][2];
 	                        for (int i = 0; i < byte_count / 2; i++) {
-	                            uint16_t reg_value = (buffer[idx][3 + 2 * i] << 8) | buffer[idx][4 + 2 * i];
+	                            uint16_t reg_value = (buffer[3][3 + 2 * i] << 8) | buffer[3][4 + 2 * i];
 	                            // Xử lý giá trị của register
 	                        }
 	                    } else if (function_code & 0x80) {
-//	                        uint8_t error_code = buffer[idx][2];
-//	                        // Xử lý lỗi từ Slave
+
 	                    }
 	                }
-	                buffer_flag[idx] = 0; // Đặt lại cờ cho buffer
+	                buffer_flag[0] = 0; // Đặt lại cờ cho buffer
 	            }
-        }
+//        }
 
     } else {
         for (int idx = 0; idx < no_ports; idx++) {
@@ -194,7 +206,7 @@ void Modbus_Process() {
                         break;
                     case WRITE_REGISTER:
                         reg = ((buffer[idx][2] << 8) | buffer[idx][3]);
-                        data = ((buffer[idx][4] << 8) | buffer[idx][5]);  // Khai báo và gán đúng cách
+                        data = ((buffer[idx][4] << 8) | buffer[idx][5]);  // Khai báo và gán
                         writeRegister(reg, data);
                         break;
                     default:

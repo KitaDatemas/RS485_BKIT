@@ -1,0 +1,8 @@
+../Core/Src/modbus.c:25:6:Modbus_Init	3
+../Core/Src/modbus.c:51:20:Modbus_Transmit	2
+../Core/Src/modbus.c:72:20:Modbus_Receive	5
+../Core/Src/modbus.c:94:20:Modbus_Receive_Callback	6
+../Core/Src/modbus.c:128:6:Modbus_Process	20
+../Core/Src/modbus.c:224:6:readRegister	2
+../Core/Src/modbus.c:236:6:writeRegister	2
+../Core/Src/modbus.c:241:9:validateAddress	2
