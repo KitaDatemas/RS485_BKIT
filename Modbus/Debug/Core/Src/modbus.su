@@ -1,0 +1,8 @@
+../Core/Src/modbus.c:25:6:Modbus_Init	32	static
+../Core/Src/modbus.c:50:20:Modbus_Transmit	40	static
+../Core/Src/modbus.c:73:20:Modbus_Receive	24	static
+../Core/Src/modbus.c:95:20:Modbus_Receive_Callback	32	static
+../Core/Src/modbus.c:129:6:Modbus_Process	24	static
+../Core/Src/modbus.c:160:6:readRegister	40	static
+../Core/Src/modbus.c:177:6:writeRegister	16	static
+../Core/Src/modbus.c:182:9:validateAddress	16	static
